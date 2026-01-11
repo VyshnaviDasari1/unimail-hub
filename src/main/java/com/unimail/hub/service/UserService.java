@@ -25,10 +25,12 @@ public class UserService {
 	}
 	//Login
 	public User login(String email, String password) throws Exception {
-		Optional<User> user = userRepository.findByEmail(email);
-		if(user.isEmpty() || !user.get().getPassword().equals(password)) {
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new Exception("Invalid email or password"));
+		
+		if(!user.getPassword().equals(password)) {
 			throw new Exception("Invalid email or password");
 		}
-		return user.get();
+		return user;
 	}
 }

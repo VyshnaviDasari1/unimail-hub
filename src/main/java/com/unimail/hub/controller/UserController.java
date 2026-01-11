@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.unimail.hub.service.UserService;
+
+import jakarta.validation.Valid;
+
 import com.unimail.hub.entity.User;
 
 @RestController
@@ -18,7 +21,7 @@ public class UserController {
 	
 	//Register API
 	@PostMapping("/register")
-	public User register(@RequestBody User user) throws Exception {
+	public User register(@Valid @RequestBody User user) throws Exception {
 		return userService.register(user);
 	}
 	
