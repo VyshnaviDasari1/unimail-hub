@@ -1,90 +1,46 @@
-# \# UniMail Hub
+# UniMail Hub
 
-# 
+UniMail Hub is a Spring Boot backend project that I’m building to learn how real backend applications work in the industry.
 
-# UniMail Hub is a Spring Boot–based backend application designed to simulate a university-style mail and notification system.  
+The idea is to simulate a simple university-style mail and notification system while understanding clean code, REST APIs, and proper project structure.
 
-# This project is built as part of an academic demo to understand real-world backend development using clean architecture and REST APIs.
+This project is part of my academic work and will be used for demo and explanation purposes.
 
-# 
+## What is done so far
+- User registration API
+- User login API
+- Input validation
+- Global exception handling
+- H2 in-memory database setup
+- Basic login and register HTML pages
 
-# \## 🚀 Features (Implemented so far)
+## Tech stack
+- Java
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- H2 Database
+- HTML, CSS, JavaScript
+- Git & GitHub
 
-# \- User Registration
+# Project structure (simple explanation)
+- Controller: handles API requests
+- Service: contains business logic
+- Repository: talks to the database
+- Entity: database tables
+- DTO: request and response objects
+- Exception Handler: handles errors globally
 
-# \- User Login (Authentication)
+## Sprint progress
+Sprint 1  
+- Day 1: Spring Boot setup and user registration  
+- Day 2: Login API, validation, exception handling, H2 database  
 
-# \- Input Validation
+## How to run
+1. Clone the project
+2. Open it in Spring Tool Suite or IntelliJ
+3. Run the main application
+4. APIs will run on `http://localhost:8080`
 
-# \- Global Exception Handling
-
-# \- H2 In-Memory Database
-
-# \- Basic Frontend Pages (Login \& Register)
-
-# 
-
-# \## 🛠 Tech Stack
-
-# \- Java
-
-# \- Spring Boot
-
-# \- Spring Web
-
-# \- Spring Validation
-
-# \- Spring Data JPA
-
-# \- H2 Database
-
-# \- HTML, CSS, JavaScript
-
-# \- Git \& GitHub
-
-# 
-
-# \## 📂 Project Structure
-
-# \- controller – Handles API requests
-
-# \- service – Business logic
-
-# \- repository – Database operations
-
-# \- entity – Database entities
-
-# \- dto – Data Transfer Objects
-
-# \- exceptionhandler – Global exception handling
-
-# 
-
-# \## 🗓 Sprint Progress
-
-# \*\*Sprint 1\*\*
-
-# \- Day 1: Project setup, user registration
-
-# \- Day 2: Authentication APIs, validation, exception handling, H2 setup
-
-# 
-
-# \## ▶️ How to Run
-
-# 1\. Clone the repository
-
-# 2\. Open in Spring Tool Suite / IntelliJ
-
-# 3\. Run the main application
-
-# 4\. Access APIs at `http://localhost:8080`
-
-# 
-
-# \## 📌 Note
-
-# This project follows a beginner-friendly clean architecture to clearly separate responsibilities and make the code easy to explain during demo presentations.
-
-
-
+## Note
+This project is built step by step to understand how real projects are developed and how to explain backend flow during a demo.

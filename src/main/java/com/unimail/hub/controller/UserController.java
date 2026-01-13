@@ -10,6 +10,8 @@ import com.unimail.hub.service.UserService;
 
 import jakarta.validation.Valid;
 
+import com.unimail.hub.dto.LoginRequest;
+import com.unimail.hub.dto.RegisterRequest;
 import com.unimail.hub.entity.User;
 
 @RestController
@@ -21,14 +23,18 @@ public class UserController {
 	
 	//Register API
 	@PostMapping("/register")
-	public User register(@Valid @RequestBody User user) throws Exception {
-		return userService.register(user);
-	}
-	
+	public User register(@RequestBody RegisterRequest request) throws Exception {
+		 User user = new User();
+		    user.setName(request.getName());
+		    user.setEmail(request.getEmail());
+		    user.setPassword(request.getPassword());
+
+		    return userService.register(user);
+		}
     //Login API 
 	@PostMapping("/login")
-	public User login(@RequestBody User user) throws Exception {
-		return userService.login(user.getEmail(), user.getPassword());
+	public User login(@RequestBody LoginRequest request) throws Exception {
+		return userService.login(request.getEmail(), request.getPassword());
 	}
 
 }
