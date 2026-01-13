@@ -1,6 +1,7 @@
 package com.unimail.hub.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import com.unimail.hub.entity.User;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin
 public class UserController {
 	
 	@Autowired
@@ -23,7 +25,7 @@ public class UserController {
 	
 	//Register API
 	@PostMapping("/register")
-	public User register(@RequestBody RegisterRequest request) throws Exception {
+	public User register(@Valid @RequestBody RegisterRequest request) throws Exception {
 		 User user = new User();
 		    user.setName(request.getName());
 		    user.setEmail(request.getEmail());

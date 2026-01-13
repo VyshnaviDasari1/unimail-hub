@@ -12,14 +12,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 	
-//	Handle runtime exceptions(login, register)
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Map<String, String>>  handleException(Exception ex){
-		Map<String, String> error = new HashMap<>();
-		error.put("error", ex.getMessage());
-		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);		
-	}
-	
 //	Handle validation errors(@Valid)
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -29,6 +21,14 @@ public class GlobalExceptionHandler {
 		errors.put(error.getField(), error.getDefaultMessage())
 		);
 		return new ResponseEntity<>(errors,HttpStatus.BAD_REQUEST);
+	}
+	
+//	Handle runtime exceptions(login, register)
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Map<String, String>>  handleException(Exception ex){
+		Map<String, String> error = new HashMap<>();
+		error.put("error", ex.getMessage());
+		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);		
 	}
 
 }
