@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.unimail.hub.entity.Email;
+import com.unimail.hub.repository.EmailRepository;
 import com.unimail.hub.service.EmailService;
 
 @RestController
@@ -20,10 +21,13 @@ import com.unimail.hub.service.EmailService;
 public class EmailController {
 	
 	private final EmailService emailService;
-	
-	 public EmailController(EmailService emailService) {
-		 this.emailService = emailService;
-	 }
+	private final EmailRepository emailRepository;
+
+    public EmailController(EmailService emailService,
+                           EmailRepository emailRepository) {
+        this.emailService = emailService;
+        this.emailRepository = emailRepository;
+    }
 	 
 	// 1️⃣ Inbox API
 	    @GetMapping("/inbox")
@@ -52,13 +56,24 @@ public class EmailController {
 	    public Email toggleStar(@PathVariable Long id) {
 	        return emailService.toggleStar(id);
 	    }
+	    // 🚨 Important
+	    @PutMapping("/{id}/important")
+	    public Email toggleImportant(@PathVariable Long id) {
+	        return emailService.toggleImportant(id);
+	    }
+
+	    // 🚨 Important inbox
+	    @GetMapping("/important/inbox")
+	    public List<Email> importantInbox() {
+	        return emailService.getImportantEmails();
+	    }
 	 // 4️⃣ Delete email
 	    @DeleteMapping("/{id}")
 	    public void deleteEmail(@PathVariable Long id) {
 	        emailService.deleteEmail(id);
 	    }
 	 // 5️⃣ Priority inbox API
-	    @GetMapping("/starred")
+	    @GetMapping("/starred/inbox")
 	    public List<Email> getStarredEmails() {
 	        return emailService.getStarredEmails();
 	    }
@@ -67,6 +82,16 @@ public class EmailController {
 	    public List<Email> searchEmails(@RequestParam String q) {
 	        return emailService.searchEmails(q);
 	    }
+	    @GetMapping("/important/unread-count")
+	    public long unreadImportantCount() {
+	        return emailService.getUnreadImportantCount();
+	    }
+	    @GetMapping("/alerts/count")
+	    public long alertCount() {
+	        return emailRepository.countByImportantTrueAndReadFalse();
+	    }
+
+
 
 
 

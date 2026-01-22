@@ -1,55 +1,32 @@
-// REGISTER
-function register() {
-  const user = {
-    name: document.getElementById("name").value,
-    email: document.getElementById("email").value,
-    password: document.getElementById("password").value
-  };
+// static/auth.js
+function login() {
+  const email = document.getElementById("loginEmail")?.value?.trim();
+  const password = document.getElementById("loginPassword")?.value?.trim();
 
-  fetch(BASE_URL + "/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(user)
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("Registration failed");
-      return res.json();
-    })
-    .then(data => {
-      alert("Registration successful");
-      window.location.href = "login.html";
-    })
-    .catch(err => {
-      alert(err.message);
-    });
+  if (!email || !password) {
+    alert("Enter email and password");
+    return;
+  }
+
+  localStorage.setItem("userEmail", email);
+  window.location.href = "/index.html";
 }
 
-// LOGIN
-function login() {
-  const user = {
-    email: document.getElementById("loginEmail").value,
-    password: document.getElementById("loginPassword").value
-  };
+function register() {
+  const name = document.getElementById("name")?.value?.trim();
+  const email = document.getElementById("email")?.value?.trim();
+  const password = document.getElementById("password")?.value?.trim();
 
-  fetch(BASE_URL + "/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(user)
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("Invalid credentials");
-      return res.json();
-    })
-    .then(data => {
-      alert("Login successful");
-      console.log("Logged user:", data);
-      // later → redirect to inbox.html
-    })
-    .catch(err => {
-      alert(err.message);
-    });
+  if (!name || !email || !password) {
+    alert("Fill all fields");
+    return;
+  }
+
+  localStorage.setItem("userEmail", email);
+  window.location.href = "/index.html";
+}
+
+function logout() {
+  localStorage.removeItem("userEmail");
+  window.location.href = "/login.html";
 }

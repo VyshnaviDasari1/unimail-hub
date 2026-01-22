@@ -1,145 +1,206 @@
-let filterMode = "ALL"; // ALL | UNREAD | STARRED
+// static/inbox.js
+requireAuth();
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadEmails();
+let currentMode = "inbox"; // inbox | unread | starred | important | search
+let allItems = [];
+let page = 1;
+const pageSize = 10;
+
+const $list = document.getElementById("emailList");
+const $title = document.getElementById("listTitle");
+const $search = document.getElementById("searchBox");
+const $empty = document.getElementById("emptyState");
+const $pageInfo = document.getElementById("pageInfo");
+
+document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+document.getElementById("btnUnread")?.addEventListener("click", (e) => { e.preventDefault(); loadMode("unread"); });
+document.getElementById("btnStarred")?.addEventListener("click", (e) => { e.preventDefault(); loadMode("starred"); });
+document.getElementById("btnImportant")?.addEventListener("click", (e) => { e.preventDefault(); loadMode("important"); });
+
+document.getElementById("prevPage")?.addEventListener("click", () => {
+  if (page > 1) { page--; renderPage(); }
+});
+document.getElementById("nextPage")?.addEventListener("click", () => {
+  const maxPage = Math.max(1, Math.ceil(allItems.length / pageSize));
+  if (page < maxPage) { page++; renderPage(); }
 });
 
-// Load emails based on current filter
-function loadEmails() {
-  let url = "http://localhost:8080/api/emails/inbox";
+const onSearch = debounce(async () => {
+  const q = $search.value.trim();
+  if (!q) return loadMode("inbox");
 
-  if (filterMode === "STARRED") {
-    url = "http://localhost:8080/api/emails/starred";
+  currentMode = "search";
+  $title.textContent = `Search: "${q}"`;
+  page = 1;
+
+  allItems = await api(`/api/emails/search?q=${encodeURIComponent(q)}`);
+  sortEmails();
+  renderPage();
+}, 300);
+
+$search?.addEventListener("input", onSearch);
+
+window.addEventListener("DOMContentLoaded", () => loadMode("inbox"));
+
+async function loadMode(mode) {
+  currentMode = mode;
+  page = 1;
+
+  if ($search) $search.value = "";
+
+  if (mode === "inbox") {
+    $title.textContent = "Inbox";
+    allItems = await api("/api/emails/inbox");
+  } else if (mode === "unread") {
+    $title.textContent = "Unread";
+    allItems = await api("/api/emails/unread");
+  } else if (mode === "starred") {
+    $title.textContent = "Priority ⭐";
+    allItems = await api("/api/emails/starred/inbox");
+  } else if (mode === "important") {
+    $title.textContent = "Alerts 🚨";
+    allItems = await api("/api/emails/important/inbox");
   }
 
-  fetch(url)
-    .then(res => res.json())
-    .then(data => {
-      const list = document.getElementById("emailList");
-      list.innerHTML = "";
+  sortEmails();
+  renderPage();
+  loadAlertBadge();
+}
 
-      let emails = data;
-      if (filterMode === "UNREAD") {
-        emails = data.filter(e => !e.read);
+function sortEmails() {
+  allItems.sort((a, b) => new Date(b.receivedAt || 0) - new Date(a.receivedAt || 0));
+}
+
+function renderPage() {
+  const total = allItems.length;
+  const maxPage = Math.max(1, Math.ceil(total / pageSize));
+  page = Math.min(page, maxPage);
+
+  const start = (page - 1) * pageSize;
+  const items = allItems.slice(start, start + pageSize);
+
+  $pageInfo.textContent = `${page} / ${maxPage}`;
+  $list.innerHTML = "";
+  $empty.style.display = items.length ? "none" : "block";
+
+  for (const e of items) $list.appendChild(renderRow(e));
+}
+
+function renderRow(e) {
+  const li = document.createElement("li");
+  li.className = `email-row ${e.read ? "read" : "unread"}`;
+
+  li.innerHTML = `
+    <div class="row-left">
+      <button class="iconbtn" title="Star" data-act="star">${e.starred ? "⭐" : "☆"}</button>
+      <button class="iconbtn" title="Alert" data-act="important">${e.important ? "🚨" : "⚪"}</button>
+    </div>
+
+    <div class="row-main" data-act="open">
+      <div class="sender">${escapeHtml(e.sender || "(unknown)")}</div>
+      <div class="subject">${escapeHtml(e.subject || "(no subject)")}</div>
+      <div class="snippet">${escapeHtml((e.body || "").slice(0, 90))}</div>
+    </div>
+
+    <div class="row-right">
+      <div class="date">${escapeHtml(fmtDate(e.receivedAt))}</div>
+      <button class="iconbtn danger" title="Delete" data-act="delete">🗑️</button>
+    </div>
+  `;
+
+  li.addEventListener("click", async (ev) => {
+    const act = ev.target?.dataset?.act || ev.target?.closest("[data-act]")?.dataset?.act;
+    if (!act) return;
+
+    try {
+      if (act === "open") {
+        if (!e.read) {
+          const updated = await api(`/api/emails/${e.id}/read`, { method: "PUT" });
+          patchLocal(updated);
+          loadAlertBadge();
+        }
+        window.location.href = `/email.html?id=${encodeURIComponent(e.id)}`;
       }
 
-      if (emails.length === 0) {
-        list.innerHTML = "<li>No emails found</li>";
-        return;
+      if (act === "star") {
+        ev.preventDefault(); ev.stopPropagation();
+        const updated = await api(`/api/emails/${e.id}/star`, { method: "PUT" });
+        patchLocal(updated);
+        renderPage();
       }
 
-      emails.forEach(email => {
-        const li = document.createElement("li");
-        li.style.cursor = "pointer";
+      if (act === "important") {
+        ev.preventDefault(); ev.stopPropagation();
+        const updated = await api(`/api/emails/${e.id}/important`, { method: "PUT" });
+        patchLocal(updated);
+        loadAlertBadge();
+        renderPage();
+      }
 
-        // ⭐ Star
-        const star = document.createElement("span");
-        star.innerText = email.starred ? "⭐" : "☆";
-        star.style.marginRight = "10px";
-        star.style.cursor = "pointer";
+      if (act === "delete") {
+        ev.preventDefault(); ev.stopPropagation();
+        await api(`/api/emails/${e.id}`, { method: "DELETE" });
+        allItems = allItems.filter(x => x.id !== e.id);
+        loadAlertBadge();
+        renderPage();
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  });
 
-        star.onclick = (e) => {
-          e.stopPropagation();
-          toggleStar(email.id);
-        };
+  return li;
+}
 
-        // Email text
-        const text = document.createElement("span");
-        text.innerText = `${email.sender} - ${email.subject}`;
-        text.style.fontWeight = email.read ? "normal" : "bold";
+function patchLocal(updated) {
+  const idx = allItems.findIndex(x => x.id === updated.id);
+  if (idx >= 0) allItems[idx] = updated;
+}
 
-        // 🗑 Delete
-        const del = document.createElement("button");
-        del.innerText = "Delete";
-        del.style.marginLeft = "15px";
+/** ✉️ Compose modal wiring */
+const modal = document.getElementById("composeModal");
+document.getElementById("composeFab")?.addEventListener("click", () => modal.classList.remove("hidden"));
+document.getElementById("closeCompose")?.addEventListener("click", () => modal.classList.add("hidden"));
 
-        del.onclick = (e) => {
-          e.stopPropagation();
-          deleteEmail(email.id);
-        };
+document.getElementById("sendBtn")?.addEventListener("click", async () => {
+  const to = document.getElementById("toEmail").value.trim();
+  const subject = document.getElementById("subjectEmail").value.trim();
+  const body = document.getElementById("bodyEmail").value.trim();
 
-        li.appendChild(star);
-        li.appendChild(text);
-        li.appendChild(del);
+  if (!to) return alert("To is required");
 
-        li.onclick = () => {
-          window.location.href = `email.html?id=${email.id}`;
-        };
+  // NOTE: this requires backend POST /api/emails
+  const created = await api("/api/emails", {
+    method: "POST",
+    body: {
+      sender: getUserEmail(),
+      receiver: to,
+      subject,
+      body
+    }
+  });
 
-        list.appendChild(li);
+  modal.classList.add("hidden");
+  if (typeof showToast === "function") showToast("Email sent ✅", "success");
+
+  // If file selected: upload it (requires backend)
+  const file = document.getElementById("attachFile").files?.[0];
+  if (file) {
+    try {
+      const form = new FormData();
+      form.append("file", file);
+
+      await fetch(`${API_BASE}/api/emails/${created.id}/attachments`, {
+        method: "POST",
+        body: form
       });
-    })
-    .catch(err => console.error("Error loading emails:", err));
-}
-
-// Filters
-function loadAll() {
-  filterMode = "ALL";
-  loadEmails();
-}
-
-function loadUnread() {
-  filterMode = "UNREAD";
-  loadEmails();
-}
-
-function loadStarred() {
-  filterMode = "STARRED";
-  loadEmails();
-}
-
-// Search
-function searchEmails() {
-  const keyword = document.getElementById("searchBox").value.trim();
-
-  if (keyword === "") {
-    loadEmails();
-    return;
+      if (typeof showToast === "function") showToast("Attachment uploaded 📎", "info");
+    } catch {
+      if (typeof showToast === "function") showToast("Attachment upload failed", "alert");
+    }
   }
 
-  fetch(`http://localhost:8080/api/emails/search?q=${keyword}`)
-    .then(res => res.json())
-    .then(data => {
-      const list = document.getElementById("emailList");
-      list.innerHTML = "";
-
-      if (data.length === 0) {
-        list.innerHTML = "<li>No emails found</li>";
-        return;
-      }
-
-      data.forEach(email => {
-        const li = document.createElement("li");
-
-        const star = document.createElement("span");
-        star.innerText = email.starred ? "⭐" : "☆";
-        star.style.marginRight = "10px";
-
-        const text = document.createElement("span");
-        text.innerText = `${email.sender} - ${email.subject}`;
-        text.style.fontWeight = email.read ? "normal" : "bold";
-
-        li.appendChild(star);
-        li.appendChild(text);
-
-        li.onclick = () => {
-          window.location.href = `email.html?id=${email.id}`;
-        };
-
-        list.appendChild(li);
-      });
-    });
-}
-
-// APIs
-function toggleStar(id) {
-  fetch(`http://localhost:8080/api/emails/${id}/star`, {
-    method: "PUT"
-  }).then(loadEmails);
-}
-
-function deleteEmail(id) {
-  fetch(`http://localhost:8080/api/emails/${id}`, {
-    method: "DELETE"
-  }).then(loadEmails);
-}
+  // refresh inbox
+  loadMode("inbox");
+});

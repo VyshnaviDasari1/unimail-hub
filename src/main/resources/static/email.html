@@ -1,24 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>UniMail Hub - Email</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>UniMail Hub - Email</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="topbar">
+    <button class="btn" id="backBtn">← Back</button>
+    <div class="brand">📨 UniMail Hub</div>
+    <div class="top-actions">
+      <button class="btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
 
-    <div class="container">
-        <h2>Email</h2>
-
-        <div class="email-card">
-            <p><strong>From:</strong> <span id="sender"></span></p>
-            <p><strong>Subject:</strong> <span id="subject"></span></p>
-            <hr>
-            <p id="body"></p>
-        </div>
-
-        <a href="inbox.html" class="back-link">← Back to Inbox</a>
+  <main class="content single">
+    <div class="email-actions">
+      <button class="btn" id="starBtn">⭐ Star</button>
+      <button class="btn" id="importantBtn">🚨 Important</button>
+      <button class="btn danger" id="deleteBtn">🗑️ Delete</button>
     </div>
 
-    <script src="email.js"></script>
+    <div class="card">
+      <div class="h1" id="subject"></div>
+      <div class="meta">
+        <div><b>From:</b> <span id="sender"></span></div>
+        <div><b>Received:</b> <span id="receivedAt"></span></div>
+      </div>
+      <hr/>
+      <pre class="body" id="body"></pre>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script src="email.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      startAlertPolling();
+    });
+  </script>
+
 </body>
 </html>

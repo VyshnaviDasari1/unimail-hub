@@ -1,21 +1,100 @@
-// Get email id from URL
-const params = new URLSearchParams(window.location.search);
-const emailId = params.get("id");
+// static/email.js
 
-// Fetch email details
-fetch(`http://localhost:8080/api/emails/${emailId}`)
-    .then(res => res.json())
-    .then(email => {
-        document.getElementById("sender").innerText = email.sender;
-        document.getElementById("subject").innerText = email.subject;
-        document.getElementById("body").innerText = email.body;
+document.addEventListener("DOMContentLoaded", () => {
+  requireAuth();
 
-        // Mark email as read
-        fetch(`http://localhost:8080/api/emails/${emailId}/read`, {
-            method: "PUT"
-        });
-    })
-    .catch(err => {
-        alert("Failed to load email");
-        console.error(err);
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+  document.getElementById("backBtn")?.addEventListener("click", () => {
+    window.location.href = "/inbox.html";
+  });
+
+  document.getElementById("starBtn")?.addEventListener("click", toggleStar);
+  document.getElementById("importantBtn")?.addEventListener("click", toggleImportant);
+  document.getElementById("deleteBtn")?.addEventListener("click", deleteEmail);
+
+  loadEmail();
+});
+
+let currentEmail = null;
+
+function getId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
+}
+
+async function loadEmail() {
+  const id = getId();
+  if (!id) {
+    alert("Missing email id");
+    return;
+  }
+
+  currentEmail = await api(`/api/emails/${id}`);
+
+  // ✅ Mark as read ONLY when email is opened (real-world behavior)
+  if (!currentEmail.read) {
+    currentEmail = await api(`/api/emails/${id}/read`, {
+      method: "PUT",
     });
+  }
+
+  render();
+}
+
+function render() {
+  document.getElementById("subject").textContent =
+    currentEmail.subject || "(no subject)";
+  document.getElementById("sender").textContent =
+    currentEmail.sender || "(unknown)";
+  document.getElementById("receivedAt").textContent =
+    fmtDate(currentEmail.receivedAt);
+  document.getElementById("body").textContent =
+    currentEmail.body || "";
+
+  document.getElementById("starBtn").textContent =
+    currentEmail.starred ? "⭐ Starred" : "⭐ Star";
+
+  document.getElementById("importantBtn").textContent =
+    currentEmail.important
+      ? "🚨 Marked Important"
+      : "🚨 Mark Important";
+}
+
+async function toggleStar() {
+  const updated = await api(
+    `/api/emails/${currentEmail.id}/star`,
+    { method: "PUT" }
+  );
+  currentEmail = updated;
+  render();
+}
+
+async function toggleImportant() {
+  const updated = await api(
+    `/api/emails/${currentEmail.id}/important`,
+    { method: "PUT" }
+  );
+  currentEmail = updated;
+  render();
+}
+
+async function deleteEmail() {
+  if (!confirm("Delete this email?")) return;
+
+  await api(`/api/emails/${currentEmail.id}`, {
+    method: "DELETE",
+  });
+
+  window.location.href = "/inbox.html";
+}
+document.addEventListener("DOMContentLoaded", () => {
+  loadAlertBadge();
+});
+if (!currentEmail.read) {
+  currentEmail = await api(`/api/emails/${id}/read`, { method: "PUT" });
+  loadAlertBadge(); // 🔴 update badge
+}
+showToast("Marked as important 🚨", "alert");
+await api(`/api/emails/${id}/read`, { method: "PUT" });
+loadAlertBadge();
+checkForNewAlerts();

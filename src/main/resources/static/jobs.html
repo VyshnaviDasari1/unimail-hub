@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>UniMail Hub – Jobs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">📨 UniMail Hub</div>
+
+  <div class="top-actions">
+    <input id="search" type="text" placeholder="Search jobs..." />
+    <div class="alerts">
+      🚨 <span id="alertBadge" class="badge hidden"></span>
+    </div>
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <button class="sidebtn" onclick="goInbox()">Inbox</button>
+    <button class="sidebtn" onclick="goUnread()">Unread</button>
+    <button class="sidebtn" onclick="goPriority()">Priority ⭐</button>
+    <button class="sidebtn" onclick="goAlerts()">Alerts 🚨</button>
+
+    <hr />
+
+    <button class="sidebtn active">Jobs 💼</button>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content">
+    <div class="content-header">
+      <div class="title">Jobs</div>
+    </div>
+
+    <div id="jobList" class="job-grid"></div>
+    <div id="emptyJobs" class="empty" style="display:none;">
+      No jobs found
+    </div>
+  </main>
+
+</div>
+
+<script src="app.js"></script>
+<script src="auth.js"></script>
+<script src="jobs.js"></script>
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    loadJobs();
+    loadAlertBadge();
+  });
+</script>
+
+</body>
+</html>

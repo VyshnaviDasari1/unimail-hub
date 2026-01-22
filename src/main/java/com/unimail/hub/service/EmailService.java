@@ -44,7 +44,15 @@ public class EmailService {
         Email email = getEmailById(id);
         email.setStarred(!email.isStarred());
         return emailRepository.save(email);
+        
     }
+ // 6️⃣ 🚨 Important / Unimportant
+    public Email toggleImportant(Long id) {
+        Email email = getEmailById(id);
+        email.setImportant(!email.isImportant());
+        return emailRepository.save(email);
+    }
+
  // 4️⃣ Delete email
     public void deleteEmail(Long id) {
         emailRepository.deleteById(id);
@@ -53,6 +61,10 @@ public class EmailService {
     public List<Email> getStarredEmails() {
         return emailRepository.findByStarredTrue();
     }
+    // 9️⃣ 🚨 Important inbox
+    public List<Email> getImportantEmails() {
+        return emailRepository.findByImportantTrue();
+    }
  // 6️⃣ Search emails
     public List<Email> searchEmails(String keyword) {
         return emailRepository
@@ -60,9 +72,8 @@ public class EmailService {
                         keyword, keyword, keyword
                 );
     }
-
-
-
-
+    public long getUnreadImportantCount() {
+        return emailRepository.countByImportantTrueAndReadFalse();
+    }
 
 }

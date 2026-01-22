@@ -1,5 +1,6 @@
 package com.unimail.hub.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.unimail.hub.entity.User;
+import com.unimail.hub.model.UserPreferences;
 import com.unimail.hub.repository.UserRepository;
 
 @Service
@@ -40,4 +42,19 @@ public class UserService {
 
         return user;
 	}
+	// TEMP – hardcoded for demo (acceptable)
+    public UserPreferences getCurrentUserPreferences() {
+        return new UserPreferences(
+                List.of("java", "spring", "backend", "microservices"),
+                "texas"
+        );
+    }
+    // TEMP preferences (OK for demo & interviews)
+    public List<String> getUserSkills() {
+        return List.of("java", "backend", "spring", "microservices");
+    }
+
+    public String getUserLocation() {
+        return "texas";
+    }
 }

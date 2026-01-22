@@ -13,10 +13,17 @@ public interface EmailRepository extends JpaRepository<Email, Long>{
 	List<Email> findByReadFalse(); // unread emails
 	
 	List<Email> findByStarredTrue();
+	long countByImportantTrueAndReadFalse();
+	
+	boolean existsBySubject(String subject);
+
 	List<Email> findBySenderContainingIgnoreCaseOrSubjectContainingIgnoreCaseOrBodyContainingIgnoreCase(
 	        String sender,
 	        String subject,
 	        String body
 	);
+	List<Email> findByImportantTrue();
+	
+	
 
 }
